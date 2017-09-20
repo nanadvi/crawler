@@ -14,9 +14,13 @@ var feeds = [];
 var articles = [];
 var Promise = require("bluebird");
 
-fetch("http://rss.uol.com.br/feed/noticias.xml",parse);
+//fetch("http://rss.uol.com.br/feed/noticias.xml",parse);
 //fetch('http://feeds.bbci.co.uk/news/rss.xml', parse);
 
+function FeedParserException(message){
+    this.message = message;
+    this.name = 'FeedParserException';
+}
 
 function uploadArticle(articles){
   mongoose.connect('mongodb://localhost:27017/test_db');
@@ -38,7 +42,7 @@ function uploadArticle(articles){
 
 function _article(title, date, copyright, author, publisher, text, links, image){
     this.title = title;
-    //this.date = new Date(date);
+    this.date = new Date(date);
     this.copyright = copyright;
     this.author = author;
     this.publisher = publisher;
@@ -65,9 +69,11 @@ function parse(posts){
         responses.forEach(function(response){
             if(response.isFulfilled()){
                 var data = extractor(response.value());
-                var Article = new _article(data.title, data.date, data.copyright,
-                data.author, data.publisher, data.text, data.links, data.image);
-                articles.push(Article);
+                if(data.text != '' && data.date != null){
+                    var Article = new _article(data.title, data.date, data.copyright,
+                    data.author, data.publisher, data.text, data.links, data.image);
+                    articles.push(Article);
+                }
             }
             else { 
                 console.log("not fullfilled")
@@ -162,7 +168,8 @@ function fetch(feed,callback) {
     var feedparser = new FeedParser();
 
     req.on('error', function(error){
-        console.log(feed+" : "+err);
+        //console.log(feed+" : "+err);
+        throw new FeedParserException(feed+" : "+err);
     });
     req.on('response', function(res) {
         if (res.statusCode != 200) return this.emit('error', new Error('Bad status code'));
@@ -183,9 +190,10 @@ function fetch(feed,callback) {
     feedparser.on('end', function(){
         callback(posts);
         //console.log(posts);
-        console.log("done");
+        console.log("FETCHING ARTICLES FROM: "+ feed);
     })
 };
 
 module.exports.fetch = fetch;
 module.exports.parse = parse;
+module.exports.FeedParserException = FeedParserException;

@@ -1,4 +1,6 @@
-var crawler = require('./rss.js');
+var rss = require('./rss.js');
+var crawler = require('./crawler.js')
+
 var sources = {
   "Argentina" : [
     'http://www.buenosairesherald.com/articles/rss.aspx',
@@ -21,7 +23,33 @@ var sources = {
   ],
   "Brazil" : [
     "http://rss.uol.com.br/feed/noticias.xml",
-    
   ]
+};
 
+function driver(){
+  for(var key in sources){
+    if(sources[key]){
+      for(var link = 0; link < sources[key].length; link++ ){
+        try{
+          rss.fetch(sources[key][link], rss.parse)
+        }
+        catch(FeedParserException){
+          console.log(FeedParserException.message);
+          console.log("CALLING CRAWLER")
+        }
+        finally{
+          try{
+            crawler.start(sources[key][link])
+          }
+          catch(e){
+            console.log(e)
+          }
+        }
+      }
+    }
+  }
+};
+
+if (require.main === module) {
+  driver();
 };

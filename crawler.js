@@ -132,7 +132,7 @@ function parseArticles(relativeLinks,source) {
     })
     
 };
-var INIT_URL = "https://oglobo.globo.com/brasil/";
-start(INIT_URL);
+//var INIT_URL = "https://oglobo.globo.com/brasil/";
+//start(INIT_URL);
 
 module.exports.start = start;
